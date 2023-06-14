@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../widgets/menu_widget.dart';
+import 'package:crypto/crypto.dart';
 
 //MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==                   secret
+//Authorization code                     NE9WeE1QZ01HUEk0SkREU2JYeVBSbzNQVjo0amxUeHpzVFppUDRmU2RxTE8zc29lNFVyUEtaUFhZcmc0cDVsMklBTkpRYw==
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({Key? key}) : super(key: key);
@@ -235,6 +238,8 @@ class _PaymentPageState extends State<PaymentPage> {
             TextButton(
                 onPressed: () {
                   startTokenizationPayment(context);
+                  retrieveAccessToken();
+                  makePreapprovalRequest();
                 },
                 child: Text('Start Tokenization Payment!')),
             TextButton(
@@ -252,5 +257,85 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
     );
   }
+
+  void retrieveAccessToken() async {
+    final url = 'https://sandbox.payhere.lk/merchant/v1/oauth/token';
+    final authorizationCode = 'NE9WeE1QZ01HUEk0SkREU2JYeVBSbzNQVjo0amxUeHpzVFppUDRmU2RxTE8zc29lNFVyUEtaUFhZcmc0cDVsMklBTkpRYw==';
+
+    debugPrint('Access token: pass', wrapWidth: 100);
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Basic $authorizationCode',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'grant_type': 'client_credentials'}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final accessToken = data['access_token'];
+      final tokenType = data['token_type'];
+      final expiresIn = data['expires_in'];
+      final scope = data['scope'];
+
+      // Use the retrieved access_token for further requests
+      debugPrint('Access token: $accessToken');
+    } else {
+      debugPrint('Failed to retrieve access token. Error: ${response.statusCode}');
+    }
+  }
+
+  //------------PreapprovalRequest---------------//
+
+  Future<void> makePreapprovalRequest() async {
+    final url = Uri.parse('https://sandbox.payhere.lk/pay/preapprove');
+
+    final response = await http.post(url, body: {
+      'merchant_id': '1223304',
+      'return_url': 'http://sample.com/return',
+      'cancel_url': 'http://sample.com/cancel',
+      'notify_url': 'http://sample.com/notify',
+      'first_name': 'Saman',
+      'last_name': 'Perera',
+      'email': 'samanp@gmail.com',
+      'phone': '0771234567',
+      'address': 'No.1, Galle Road',
+      'city': 'Colombo',
+      'country': 'Sri Lanka',
+      'order_id': 'Preapproval12345',
+      'items': 'MyTaxi Hires',
+      'currency': 'LKR',
+      'method': 'VISA',
+      'card_holder_name': 'Himashi',
+      'card_no': '4916217501611292',
+      'card_expiry': '05/25',
+      'hash': generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
+      'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA=='), // Replace with your generated hash
+    });
+
+    if (response.statusCode == 200) {
+      // Handle the successful response
+      debugPrint('Preapproval request success');
+    } else {
+      // Handle the error
+      debugPrint('Preapproval request failed');
+    }
+  }
+
+  String generateHash(String merchantId, String orderId, double amount, String currency, String merchantSecret) {
+    String formattedAmount = amount.toStringAsFixed(2);
+    String hashString = merchantId +
+        orderId +
+        formattedAmount +
+        currency +
+        md5.convert(utf8.encode(merchantSecret)).toString().toUpperCase();
+
+    String hash = md5.convert(utf8.encode(hashString)).toString().toUpperCase();
+    return hash;
+  }
+
+
 }
 

@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:railway_ticketing/models/Passenger.dart';
 import '../widgets/menu_widget.dart';
 import 'booking_screen.dart';
 
@@ -13,16 +15,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _greeting = '';
+  String _userName = '';
+
+  final user = FirebaseAuth.instance.currentUser;
+
+
 
   @override
   void initState() {
     super.initState();
     _setGreeting();
+    _getUserName();
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
+
+    debugPrint('nameeeewwww $_userName', wrapWidth: 100);
 
     SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
 
@@ -51,12 +61,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.black54
                       ),
                     ),
-                    SizedBox(height: 10,),
-                    Text(
-                      user.email!,
-                      style: const TextStyle(
-                          fontSize: 16
-                      ),
+                    const SizedBox(height: 10,),
+                    FutureBuilder<String>(
+                        future: _getUserName(),
+                        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                          return Text(
+                            _userName,
+                            style: const TextStyle(
+                                fontSize: 16
+                            ),
+                          );
+                        }
                     ),
                   ],
                 ),
@@ -322,6 +337,29 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+Future<String> _getUserName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String userId = user!.uid;
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentReference documentRef = firestore.collection('Passengers').doc(userId);
+
+    debugPrint('nameeee $userId', wrapWidth: 100);
+    DocumentSnapshot snapshot = await documentRef.get();
+
+    if (snapshot.exists) {
+      debugPrint('nameeee exxxxx', wrapWidth: 100);
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+
+      // Access the fields of the document using the 'data' map
+      _userName = data['name'];
+      debugPrint('nameeee $_userName', wrapWidth: 100);
+      return _userName;
+
+    } else {
+      print('Document does not exist');
+      return ("Passenger name not exist");
+    }
+  }
 }
 
 

@@ -242,7 +242,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   void _searchTrainAvailability() {
     // Replace with your train schedule or database lookup code
-    if (selectedValueFrom == 'Option 2' && selectedValueTo == 'Option 3' && _selectedDate != null && _selectedDate!.day == 30 && _selectedDate!.month == 4) {
+    if (selectedValueFrom == 'Option 2' && selectedValueTo == 'Option 3' && _selectedDate != null && _selectedDate!.day == 30 && _selectedDate!.month == 6) {
       setState(() {
         _availableTrains = ['Train A', 'Train B'];
       });
@@ -303,4 +303,5 @@ class _BookingScreenState extends State<BookingScreen> {
       });
     }
   }
+
 }
