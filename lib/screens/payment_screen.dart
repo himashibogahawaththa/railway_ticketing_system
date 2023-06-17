@@ -268,7 +268,7 @@ class _PaymentPageState extends State<PaymentPage> {
       Uri.parse(url),
       headers: {
         'Authorization': 'Basic $authorizationCode',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: jsonEncode({'grant_type': 'client_credentials'}),
     );

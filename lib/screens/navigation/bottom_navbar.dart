@@ -2,6 +2,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:railway_ticketing/screens/profile_screen.dart';
 
+import '../qr_screen.dart';
 import '../home_screen.dart';
 
 class BottomNav extends StatefulWidget {
@@ -17,13 +18,13 @@ class _BottomNavState extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      const HomeScreen(),
+       QRScreen(),
       const HomeScreen(),
       const ProfileScreen()
       // PayHerePaymentPage(merchantId: '', returnUrl: '', cancelUrl: '', notifyUrl: '', firstName: '', lastName: '', email: '', phone: '', address: '', city: '', country: '', orderId: '', items: '', currency: '', amount: 0.0 , hash: '',),
     ];
     final items = <Widget>[
-      const Icon(Icons.bookmark, size: 30,),
+      const Icon(Icons.qr_code, size: 30,),
       const Icon(Icons.home, size: 30,),
       const Icon(Icons.person_pin_sharp, size: 30,),
     ];

@@ -3,8 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:railway_ticketing/models/Passenger.dart';
+import 'package:railway_ticketing/screens/trainScreen.dart';
+import 'package:railway_ticketing/screens/train_schedule_screen.dart';
 import '../widgets/menu_widget.dart';
+import 'add_payment_card_screen.dart';
+import 'booking.dart';
 import 'booking_screen.dart';
+import 'card_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -127,7 +132,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 75,
                               width: 90,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) =>  TrainScreen()),
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(10.0),
                                 ),
@@ -159,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const BookingScreen()),
+                                    MaterialPageRoute(builder: (context) =>  BookingScreen()),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -190,7 +200,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 75,
                               width: 90,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) =>  TrainScheduleScreen()),
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(10.0),
                                 ),
@@ -226,7 +241,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 75,
                               width: 90,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) =>  BookingScreen()),
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(10.0),
                                 ),
@@ -255,7 +275,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 75,
                               width: 90,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => CardScreen()),
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(10.0),
                                 ),
@@ -268,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     SizedBox(
                                       height: 5,
                                     ),
-                                    Text('Parcels')
+                                    Text('My Cards')
                                   ],
                                 ),
                               ),
@@ -284,7 +309,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 75,
                               width: 90,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => TicketDataScreen()),
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(10.0),
                                 ),
