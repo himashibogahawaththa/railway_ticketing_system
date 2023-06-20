@@ -32,15 +32,78 @@ class AuthController extends GetxController {
 
   bool isLoginAsDriver = false;
 
-  storeUserCard(String number, String expiry, String cvv, String name) async {
-    await FirebaseFirestore.instance
-        .collection('Passengers')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('Cards')
-        .add({'name': name, 'number': number, 'cvv': cvv, 'expiry': expiry});
+  storeUserCard(String number, String expiry, String cvv, String name,
+      String access_token, String token_type, int expires_in, String scope, String customer_token) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final userId = currentUser.uid;
+      final cardId = userId; // Set the card ID equal to the user's UID
 
-    debugPrint('uiddd ${FirebaseAuth.instance.currentUser!.uid}');
-    return true;
+      await FirebaseFirestore.instance
+          .collection('Passengers')
+          .doc(userId)
+          .collection('Cards')
+          .doc(cardId)
+          .set({
+        'name': name,
+        'number': number,
+        'cvv': cvv,
+        'expiry': expiry,
+        'access_token': access_token,
+        'token_type': token_type,
+        'expires_in': expires_in,
+        'scope': scope,
+        'customer_token': customer_token,
+      });
+
+      debugPrint('uiddd $userId');
+      return true;
+    }
+  }
+
+  editUserCard(String cardId, String number, String expiry, String cvv, String name,
+      String access_token, String token_type, int expires_in, String scope, String customer_token) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final userId = currentUser.uid;
+
+      await FirebaseFirestore.instance
+          .collection('Passengers')
+          .doc(userId)
+          .collection('Cards')
+          .doc(cardId)
+          .update({
+        'name': name,
+        'number': number,
+        'cvv': cvv,
+        'expiry': expiry,
+        'access_token': access_token,
+        'token_type': token_type,
+        'expires_in': expires_in,
+        'scope': scope,
+        'customer_token': customer_token,
+      });
+
+      debugPrint('uiddd $userId');
+      return true;
+    }
+  }
+
+  deleteUserCard(String cardId) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final userId = currentUser.uid;
+
+      await FirebaseFirestore.instance
+          .collection('Passengers')
+          .doc(userId)
+          .collection('Cards')
+          .doc(cardId)
+          .delete();
+
+      debugPrint('uiddd $userId');
+      return true;
+    }
   }
 
   RxList userCards = [].obs;

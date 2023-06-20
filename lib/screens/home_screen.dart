@@ -10,6 +10,7 @@ import 'add_payment_card_screen.dart';
 import 'booking.dart';
 import 'booking_screen.dart';
 import 'card_screen.dart';
+import 'map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -244,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) =>  BookingScreen()),
+                                    MaterialPageRoute(builder: (context) =>  MapScreen()),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(

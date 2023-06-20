@@ -1,12 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/credit_card_brand.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../controller/auth_controller.dart';
-import '../widgets/green_intro_widget.dart';
-import '../widgets/menu_widget.dart';
 import 'add_payment_card_screen.dart';
 
 
@@ -125,27 +124,77 @@ class CardScreenState extends State<CardScreen> {
             ),
 
             Positioned(
-                bottom: 10,
-                right: 10,
-                child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text("Add new card",style: GoogleFonts.poppins(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.teal),),
+              bottom: 10,
+              right: 10,
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('Passengers')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .collection('Cards')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final cards = snapshot.data!.docs;
+                    if (cards.isEmpty) {
+                      // No cards available, show "Add new card" button
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            "Add new card",
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          FloatingActionButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => AddPaymentCardScreen()),
+                              );
+                            },
+                            child: Icon(Icons.arrow_forward, color: Colors.white),
+                            backgroundColor: Colors.teal,
+                          ),
+                        ],
+                      );
+                    } else {
+                      // Card(s) available, show "Delete" and "Edit" buttons
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              authController.deleteUserCard(FirebaseAuth.instance.currentUser!.uid);
+                            },
+                            child: Text('Delete'),
+                          ),
+                          SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: () {
+                              // Perform edit operation
+                            },
+                            child: Text('Edit'),
+                          ),
+                        ],
+                      );
+                    }
+                  } else if (snapshot.hasError) {
+                    // Handle error case
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    // Loading state
+                    return CircularProgressIndicator();
+                  }
+                },
+              ),
+            )
 
-                SizedBox(width: 10,),
-
-                FloatingActionButton(onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddPaymentCardScreen()),
-                  );
-                },child: Icon(Icons.arrow_forward,color: Colors.white,),backgroundColor: Colors.teal,)
-              ],
-            ))
-
-
-          ],
-        ),
+          ]
+      ),
       ),
     );
   }

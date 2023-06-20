@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:railway_ticketing/screens/home_screen.dart';
+import 'package:railway_ticketing/screens/pay_screen.dart';
+import 'package:railway_ticketing/screens/payment_screen.dart';
 
 import '../api/local_auth_api.dart';
+import 'navigation/navigation_drawer_screen.dart';
 
 class FingerprintScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -94,7 +97,7 @@ class FingerprintScreen extends StatelessWidget {
           print('Error: $e');
         }
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => const PayScreen()),
         );
       }
     },

@@ -8,6 +8,7 @@ import 'package:railway_ticketing/screens/profile_screen.dart';
 
 import '../../models/menu_item.dart';
 import '../home_screen.dart';
+import '../pay_screen.dart';
 import 'menu_screen.dart';
 
 class NavigationDrawerScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _NavigationDrawerState extends State<NavigationDrawerScreen> {
       case MenuItems.booking:
         return const BookingScreen();
       case MenuItems.payment:
-        return const PaymentPage();
+        return const PayScreen();
       case MenuItems.profile:
         return const ProfileScreen();
         // return PayHerePaymentPage(merchantId: '', returnUrl: '', cancelUrl: '',

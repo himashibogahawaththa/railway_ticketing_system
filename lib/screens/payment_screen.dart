@@ -1,25 +1,53 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../widgets/menu_widget.dart';
-import 'package:crypto/crypto.dart';
+import 'package:get/get.dart';
+
+import '../controller/auth_controller.dart';
 
 //MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==                   secret
-//Authorization code                     NE9WeE1QZ01HUEk0SkREU2JYeVBSbzNQVjo0amxUeHpzVFppUDRmU2RxTE8zc29lNFVyUEtaUFhZcmc0cDVsMklBTkpRYw==
+//Authorization code            NE9WeE1QZ01HUEk0SkREU2JYeVBSbzNQVjo0amxUeHpzVFppUDRmU2RxTE8zc29lNFVyUEtaUFhZcmc0cDVsMklBTkpRYw==
 
-class PaymentPage extends StatefulWidget {
-  const PaymentPage({Key? key}) : super(key: key);
+
+class PaymentScreen extends StatefulWidget {
+  const PaymentScreen({Key? key}) : super(key: key);
 
   @override
-  State<PaymentPage> createState() => _PaymentPageState();
+  State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentPageState extends State<PaymentPage> {
+class _PaymentScreenState extends State<PaymentScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? userId;
+  String accessToken = '';
+  String customerToken = '';
+
+  AuthController authController = Get.put(AuthController());
+
   @override
   void initState() {
+    authController.getUserCards();
     super.initState();
+    getCurrentUser();
     // initPlatformState();
+  }
+
+  Future<void> getCurrentUser() async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      setState(() {
+        userId = user.uid;
+      });
+      accessToken = (await getAccessToken(userId))!;
+      customerToken = (await getCustomerToken(userId!))!;
+      setState(() {
+        // Update the state with the retrieved accessToken
+      });
+    }
   }
 
   void showAlert(BuildContext context, String title, String msg) {
@@ -49,175 +77,11 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  void startOneTimePayment(BuildContext context) async {
-    Map paymentObject = {
-      "sandbox": true, // true if using Sandbox Merchant ID
-      "merchant_id": "1223304", // Replace your Merchant ID
-      "merchant_secret": "MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==",
-      "notify_url": "https://ent13zfovoz7d.x.pipedream.net/",
-      "order_id": "ItemNo12345",
-      "items": "Hello from Flutter!",
-      "item_number_1": "001",
-      "item_name_1": "Test Item #1",
-      "amount_1": "5.00",
-      "quantity_1": "2",
-      "item_number_2": "002",
-      "item_name_2": "Test Item #2",
-      "amount_2": "20.00",
-      "quantity_2": "1",
-      "amount": 30.00,
-      "currency": "LKR",
-      "first_name": "Saman",
-      "last_name": "Perera",
-      "email": "samanp@gmail.com",
-      "phone": "0771234567",
-      "address": "No.1, Galle Road",
-      "city": "Colombo",
-      "country": "Sri Lanka",
-      "delivery_address": "No. 46, Galle road, Kalutara South",
-      "delivery_city": "Kalutara",
-      "delivery_country": "Sri Lanka",
-      "custom_1": "",
-      "custom_2": ""
-    };
-
-    PayHere.startPayment(paymentObject, (paymentId) {
-      print("One Time Payment Success. Payment Id: $paymentId");
-      showAlert(context, "Payment Success!", "Payment Id: $paymentId");
-    }, (error) {
-      print("One Time Payment Failed. Error: $error");
-      showAlert(context, "Payment Failed", "$error");
-    }, () {
-      print("One Time Payment Dismissed");
-      showAlert(context, "Payment Dismissed", "");
-    });
-  }
-
-  void startRecurringPayment(BuildContext context) async {
-    Map paymentObject = {
-      "sandbox": true, // true if using Sandbox Merchant ID
-      "merchant_id": "1223304", // Replace your Merchant ID
-      "merchant_secret": "MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==",
-      "notify_url": "https://ent13zfovoz7d.x.pipedream.net/",
-      "order_id": "ItemNo12345",
-      "items": "Hello from Flutter!",
-      "item_number_1": "001",
-      "item_name_1": "Test Item #1",
-      "amount_1": 50.00,
-      "quantity_1": "1",
-      "item_number_2": "002",
-      "item_name_2": "Test Item #1",
-      "amount_2": "25.00",
-      "quantity_2": "2",
-      "amount": 100.00,
-      "recurrence": "1 Month", // Recurring payment frequency
-      "duration": "1 Year", // Recurring payment duration
-      "currency": "LKR",
-      "first_name": "Saman",
-      "last_name": "Perera",
-      "email": "samanp@gmail.com",
-      "phone": "0771234567",
-      "address": "No.1, Galle Road",
-      "city": "Colombo",
-      "country": "Sri Lanka",
-      "delivery_address": "No. 46, Galle road, Kalutara South",
-      "delivery_city": "Kalutara",
-      "delivery_country": "Sri Lanka",
-      "custom_1": "",
-      "custom_2": ""
-    };
-
-    PayHere.startPayment(paymentObject, (paymentId) {
-      print("Recurring Payment Success. Payment Id: $paymentId");
-      showAlert(context, "Payment Success!", "Payment Id: $paymentId");
-    }, (error) {
-      print("Recurring Payment Failed. Error: $error");
-      showAlert(context, "Payment Failed", "$error");
-    }, () {
-      print("Recurring Payment Dismissed");
-      showAlert(context, "Payment Dismissed", "");
-    });
-  }
-
-  void startTokenizationPayment(BuildContext context, { bool setAmount = false }) async {
-    Map paymentObject = {
-      "sandbox": true, // true if using Sandbox Merchant ID
-      "merchant_id": "1223304", // Replace your Merchant ID
-      "merchant_secret": "MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==",
-      "preapprove": true, // Required
-      "notify_url": "https://ent13zfovoz7d.x.pipedream.net/",
-      "order_id": "ItemNo12345",
-      "items": "Hello from Flutter!",
-      "currency": "LKR",
-      "first_name": "Saman",
-      "last_name": "Perera",
-      "email": "samanp@gmail.com",
-      "phone": "0771234567",
-      "address": "No.1, Galle Road",
-      "city": "Colombo",
-      "country": "Sri Lanka",
-    };
-
-    if (setAmount){
-      paymentObject['amount'] = '30.00';
-    }
-
-    PayHere.startPayment(paymentObject, (paymentId) {
-      print("Tokenization Payment Success. Payment Id: $paymentId");
-      showAlert(context, "Payment Success!", "Payment Id: $paymentId");
-    }, (error) {
-      print("Tokenization Payment Failed. Error: $error");
-      showAlert(context, "Payment Failed", "$error");
-    }, () {
-      print("Tokenization Payment Dismissed");
-      showAlert(context, "Payment Dismissed", "");
-    });
-  }
-
-  void startHoldOnCardPayment(BuildContext context) async {
-    Map paymentObject = {
-      "sandbox": true, // true if using Sandbox Merchant ID
-      "authorize": true, // Required
-      "merchant_id": "1223304", // Replace your Merchant ID
-      "notify_url": "https://ent13zfovoz7d.x.pipedream.net/",
-      "order_id": "ItemNo12345",
-      "items": "Hello from Flutter!",
-      "currency": "LKR",
-      "item_number_1": "001",
-      "item_name_1": "Test Item #1",
-      "amount_1": "15.00",
-      "quantity_1": "2",
-      "item_number_2": "002",
-      "item_name_2": "Test Item #2",
-      "amount_2": "20.00",
-      "quantity_2": "1",
-      "amount": "50.00",
-      "first_name": "Saman",
-      "last_name": "Perera",
-      "email": "samanp@gmail.com",
-      "phone": "0771234567",
-      "address": "No.1, Galle Road",
-      "city": "Colombo",
-      "country": "Sri Lanka",
-    };
-
-    PayHere.startPayment(paymentObject, (paymentId) {
-      print("Hold-on-Card Payment Success.");
-      showAlert(context, "Payment Success!", "");
-    }, (error) {
-      print("Hold-on-Card Payment Failed. Error: $error");
-      showAlert(context, "Payment Failed", "$error");
-    }, () {
-      print("Hold-on-Card Payment Dismissed");
-      showAlert(context, "Payment Dismissed", "");
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.teal,
         title: Text('Payment Page'),
         leading: MenuWidget(),
       ),
@@ -227,42 +91,114 @@ class _PaymentPageState extends State<PaymentPage> {
           children: [
             TextButton(
                 onPressed: () {
-                  startOneTimePayment(context);
-                },
-                child: Text('Start One Time Payment!')),
-            TextButton(
-                onPressed: () {
-                  startRecurringPayment(context);
-                },
-                child: Text('Start Recurring Payment!')),
-            TextButton(
-                onPressed: () {
-                  startTokenizationPayment(context);
-                  retrieveAccessToken();
-                  makePreapprovalRequest();
-                },
-                child: Text('Start Tokenization Payment!')),
-            TextButton(
-                onPressed: () {
-                  startTokenizationPayment(context, setAmount: true);
+                  print('accessToken: $accessToken, customerToken:$customerToken');
+                  chargeCustomer(accessToken, customerToken);
                 },
                 child: Text('Start Tokenization Payment (with amount)!')),
-            TextButton(
-                onPressed: () {
-                  startHoldOnCardPayment(context);
-                },
-                child: Text('Start Hold on Card Payment!')),
           ],
         ),
       ),
     );
   }
 
+  void chargeCustomer(String accessToken, String customerToken) async {
+    final url = 'https://sandbox.payhere.lk/merchant/v1/payment/charge';
+
+    print('Entered to charge the customer.');
+
+    final body = {
+      "type": "PAYMENT",
+      "order_id": "Order12345",
+      "items": "Taxi Hire 123",
+      "currency": "LKR",
+      "amount": 20.67,
+      "customer_token": customerToken,
+      "hash": customerToken
+    };
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final status = data['status'];
+      final message = data['msg'];
+      final paymentId = data['data']['payment_id'];
+      final statusCode = data['data']['status_code'];
+      final statusMessage = data['data']['status_message'];
+      final md5sig = data['data']['md5sig'];
+      final authorizationToken = data['data']['authorization_token'];
+
+      // Process the response data as needed
+      print('Status: $status');
+      print('Message: $message');
+      print('Payment ID: $paymentId');
+      print('Status Code: $statusCode');
+      print('Status Message: $statusMessage');
+      print('MD5 Signature: $md5sig');
+      print('Authorization Token: $authorizationToken');
+    } else {
+      print('Failed to charge the customer. Error: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>?> getCardData(String cardId) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final userId = currentUser.uid;
+
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('Passengers')
+          .doc(userId)
+          .collection('Cards')
+          .doc(cardId) // Use the cardId parameter here
+          .get();
+
+      if (docSnapshot.exists) {
+        final cardData = docSnapshot.data() as Map<String, dynamic>;
+        return cardData;
+      }
+    }
+
+    return null; // Return null in case of no data or error
+  }
+
+  Future<String?> getAccessToken(String? cardId) async {
+    final cardData = await getCardData(cardId!);
+    if (cardData != null) {
+      final accessToken = cardData['access_token'] as String?;
+      return accessToken;
+    }
+    return null;
+  }
+
+  Future<String?> getCustomerToken(String? cardId) async {
+    final cardData = await getCardData(cardId!);
+    if (cardData != null) {
+      final customerToken = cardData['customer_token'] as String?;
+      return customerToken;
+    }
+    return null;
+  }
+
   void retrieveAccessToken() async {
     final url = 'https://sandbox.payhere.lk/merchant/v1/oauth/token';
     final authorizationCode = 'NE9WeE1QZ01HUEk0SkREU2JYeVBSbzNQVjo0amxUeHpzVFppUDRmU2RxTE8zc29lNFVyUEtaUFhZcmc0cDVsMklBTkpRYw==';
+    final customer_token = generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
+        'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==');
 
-    debugPrint('Access token: pass', wrapWidth: 100);
+    final grantType = 'client_credentials';
+    final body = {
+      'grant_type': grantType,
+      'hash': generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
+          'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA=='),
+    };
 
     final response = await http.post(
       Uri.parse(url),
@@ -270,8 +206,9 @@ class _PaymentPageState extends State<PaymentPage> {
         'Authorization': 'Basic $authorizationCode',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: jsonEncode({'grant_type': 'client_credentials'}),
+      body: body,
     );
+
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -281,46 +218,10 @@ class _PaymentPageState extends State<PaymentPage> {
       final scope = data['scope'];
 
       // Use the retrieved access_token for further requests
-      debugPrint('Access token: $accessToken');
+      debugPrint('Access token: $accessToken , $tokenType, $expiresIn, $scope');
+
     } else {
       debugPrint('Failed to retrieve access token. Error: ${response.statusCode}');
-    }
-  }
-
-  //------------PreapprovalRequest---------------//
-
-  Future<void> makePreapprovalRequest() async {
-    final url = Uri.parse('https://sandbox.payhere.lk/pay/preapprove');
-
-    final response = await http.post(url, body: {
-      'merchant_id': '1223304',
-      'return_url': 'http://sample.com/return',
-      'cancel_url': 'http://sample.com/cancel',
-      'notify_url': 'http://sample.com/notify',
-      'first_name': 'Saman',
-      'last_name': 'Perera',
-      'email': 'samanp@gmail.com',
-      'phone': '0771234567',
-      'address': 'No.1, Galle Road',
-      'city': 'Colombo',
-      'country': 'Sri Lanka',
-      'order_id': 'Preapproval12345',
-      'items': 'MyTaxi Hires',
-      'currency': 'LKR',
-      'method': 'VISA',
-      'card_holder_name': 'Himashi',
-      'card_no': '4916217501611292',
-      'card_expiry': '05/25',
-      'hash': generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
-      'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA=='), // Replace with your generated hash
-    });
-
-    if (response.statusCode == 200) {
-      // Handle the successful response
-      debugPrint('Preapproval request success');
-    } else {
-      // Handle the error
-      debugPrint('Preapproval request failed');
     }
   }
 
@@ -335,7 +236,6 @@ class _PaymentPageState extends State<PaymentPage> {
     String hash = md5.convert(utf8.encode(hashString)).toString().toUpperCase();
     return hash;
   }
-
 
 }
 

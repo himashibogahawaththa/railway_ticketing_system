@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:railway_ticketing/screens/fingerprint_screen.dart';
 import '../widgets/menu_widget.dart';
+import 'booking.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({Key? key}) : super(key: key);
@@ -17,9 +18,9 @@ class _BookingScreenState extends State<BookingScreen> {
   TimeOfDay? _selectedStartTime;
   TimeOfDay? _selectedEndTime;
   List<String> _availableTrains = [
-    'Train A',
-    'Train B',
-    'Train C',
+    'Galle to Colombo Fort',
+    'Galle to Colombo Fort',
+    'Galle Intercity',
   ];
 
   @override
@@ -244,7 +245,7 @@ class _BookingScreenState extends State<BookingScreen> {
     // Replace with your train schedule or database lookup code
     if (selectedValueFrom == 'Option 2' && selectedValueTo == 'Option 3' && _selectedDate != null && _selectedDate!.day == 30 && _selectedDate!.month == 6) {
       setState(() {
-        _availableTrains = ['Train A', 'Train B'];
+        _availableTrains = ['Galle to Colombo Fort', 'Galle Intercity'];
       });
       showModalBottomSheet(
         context: context,
@@ -285,7 +286,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           Navigator.pop(context); // Close the modal
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => FingerprintScreen()),
+                            MaterialPageRoute(builder: (context) => TicketDataScreen()),
                           );
                         },
                       );

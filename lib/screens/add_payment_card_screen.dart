@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/credit_card_brand.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:crypto/crypto.dart';
 
 import '../controller/auth_controller.dart';
-import '../utils/app_styles.dart';
 import '../widgets/green_intro_widget.dart';
-import '../widgets/menu_widget.dart';
 import 'card_screen.dart';
 
 
@@ -23,6 +24,7 @@ class AddPaymentCardScreenState extends State<AddPaymentCardScreen> {
   String expiryDate = '';
   String cardHolderName = '';
   String cvvCode = '';
+  String customer_token = '';
   bool isCvvFocused = false;
   bool useGlassMorphism = false;
   bool useBackgroundImage = false;
@@ -66,7 +68,7 @@ class AddPaymentCardScreenState extends State<AddPaymentCardScreen> {
 
             children: <Widget>[
               CreditCardWidget(
-                 cardNumber: cardNumber,
+                cardNumber: cardNumber,
                 expiryDate: expiryDate,
                 cardHolderName: cardHolderName,
                 cvvCode: cvvCode,
@@ -164,8 +166,8 @@ class AddPaymentCardScreenState extends State<AddPaymentCardScreen> {
                           if (formKey.currentState!.validate()) {
                             debugPrint('valid!');
 
-
-                            await Get.find<AuthController>().storeUserCard(cardNumber, expiryDate, cvvCode, cardHolderName);
+                            makePreapprovalRequest(cardNumber, expiryDate, cvvCode, cardHolderName,);
+                            retrieveAccessToken(cardNumber, expiryDate, cvvCode, cardHolderName);
 
                             Get.snackbar('Success', 'Your card is stored successfully');
 
@@ -198,5 +200,97 @@ class AddPaymentCardScreenState extends State<AddPaymentCardScreen> {
       cvvCode = creditCardModel.cvvCode;
       isCvvFocused = creditCardModel.isCvvFocused;
     });
+  }
+
+  void retrieveAccessToken(String card_no, String card_expiry, String cvvCode, String card_holder_name) async {
+    final url = 'https://sandbox.payhere.lk/merchant/v1/oauth/token';
+    final authorizationCode = 'NE9WeE1QZ01HUEk0SkREU2JYeVBSbzNQVjo0amxUeHpzVFppUDRmU2RxTE8zc29lNFVyUEtaUFhZcmc0cDVsMklBTkpRYw==';
+    final customer_token = generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
+        'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==');
+
+    final grantType = 'client_credentials';
+    final body = {
+      'grant_type': grantType,
+      'hash': generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
+          'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA=='),
+    };
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Basic $authorizationCode',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body,
+    );
+
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final accessToken = data['access_token'];
+      final tokenType = data['token_type'];
+      final expiresIn = data['expires_in'];
+      final scope = data['scope'];
+
+      // Use the retrieved access_token for further requests
+      debugPrint('Access token: $accessToken , $tokenType, $expiresIn, $scope');
+
+      await Get.find<AuthController>().storeUserCard(cardNumber, expiryDate,
+          cvvCode, cardHolderName, accessToken, tokenType, expiresIn, scope, customer_token);
+
+    } else {
+      debugPrint('Failed to retrieve access token. Error: ${response.statusCode}');
+    }
+  }
+
+  //------------PreapprovalRequest---------------//
+
+  Future<void> makePreapprovalRequest(String card_no, String card_expiry, String cvvCode, String card_holder_name) async {
+    final url = Uri.parse('https://sandbox.payhere.lk/pay/preapprove');
+    String customer_token = generateHash("1223304", 'Preapproval12345', 10.0, 'LKR',
+        'MzIwNDQ4NDAzOTQyNDY0MDIwMjUzNTg3NTIzNTYwMzgwMDU4NDY1NA==');
+
+    final response = await http.post(url, body: {
+      'merchant_id': '1223304',
+      'return_url': 'http://sample.com/return',
+      'cancel_url': 'http://sample.com/cancel',
+      'notify_url': 'https://sandbox.payhere.lk/merchant/subscriptions',
+      'first_name': 'Saman',
+      'last_name': 'Perera',
+      'email': 'samanp@gmail.com',
+      'phone': '0771234567',
+      'address': 'No.1, Galle Road',
+      'city': 'Colombo',
+      'country': 'Sri Lanka',
+      'order_id': 'Preapproval12345',
+      'items': 'MyTaxi Hires',
+      'currency': 'LKR',
+      'method': 'VISA',
+      'card_holder_name': card_holder_name,
+      'card_no': card_no,
+      'card_expiry': card_expiry,
+      'cvv': cvvCode,
+      'hash': customer_token, // Replace with your generated hash
+    });
+
+    if (response.statusCode == 200) {
+      // Handle the successful response
+      debugPrint('Preapproval request success');
+    } else {
+      // Handle the error
+      debugPrint('Preapproval request failed');
+    }
+  }
+
+  String generateHash(String merchantId, String orderId, double amount, String currency, String merchantSecret) {
+    String formattedAmount = amount.toStringAsFixed(2);
+    String hashString = merchantId +
+        orderId +
+        formattedAmount +
+        currency +
+        md5.convert(utf8.encode(merchantSecret)).toString().toUpperCase();
+
+    String hash = md5.convert(utf8.encode(hashString)).toString().toUpperCase();
+    return hash;
   }
 }
