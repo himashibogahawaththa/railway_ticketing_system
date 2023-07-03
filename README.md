@@ -41,4 +41,4 @@ We appreciate your contributions and will review them as soon as possible.
 
 ## Contact
 
-For any inquiries or feedback, please contact our team at himashibogahawaththa@gmail.com
+For any inquiries or feedback, please contact me at himashibogahawaththa@gmail.com
